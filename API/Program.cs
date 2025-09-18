@@ -9,6 +9,7 @@ internal class Program
 
         // Add services to the container.
         builder.Services.AddDbContext<AppDbContext>(opt => opt.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
+        builder.Services.AddCors();
 
         builder.Services.AddControllers();
 
@@ -17,6 +18,13 @@ internal class Program
         // Configure the HTTP request pipeline.
         app.UseHttpsRedirection();
         app.UseRouting();
+        app.UseCors(policy =>
+        {
+            policy
+                .AllowAnyHeader()
+                .AllowAnyMethod()
+                .WithOrigins(["http://localhost:3000", "https://localhost:3000"]);
+        });
         app.UseAuthorization();
 
         app.MapControllers();
