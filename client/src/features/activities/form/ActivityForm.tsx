@@ -1,14 +1,12 @@
 import { Box, Button, Paper, TextField, Typography } from "@mui/material";
 import type { FormEvent } from "react";
 import { useActivities } from "../../../lib/hooks/useActivities";
+import { useNavigate, useParams } from "react-router";
 
-type Props = {
-  activity: Activity,
-  closeForm: () => void
-};
-
-export default function ActivityForm({ activity, closeForm }: Readonly<Props>) {
-  const { updateActivity, createActivity } = useActivities();
+export default function ActivityForm() {
+  const { id } = useParams();
+  const { updateActivity, createActivity, activity, isLoadingActivity } = useActivities(id);
+  const navigate = useNavigate();
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -22,15 +20,23 @@ export default function ActivityForm({ activity, closeForm }: Readonly<Props>) {
     if (activity) {
       data.id = activity.id;
       await updateActivity.mutateAsync(data as unknown as Activity);
+      navigate(`/activities/${data.id}`);
     } else {
-      await createActivity.mutateAsync(data as unknown as Activity);
+      await createActivity.mutateAsync(data as unknown as Activity, { onSuccess: onActivityCreated });
     }
-    closeForm();
   };
+
+  const onActivityCreated = (id: string) => {
+    navigate(`/activities/${id}`);
+  };
+
+  if (isLoadingActivity) return <Typography>Loading...</Typography>;
 
   return (
     <Paper sx={{ borderRadius: 3, padding: 3 }}>
-      <Typography variant="h5" gutterBottom color="primary">Create Activity</Typography>
+      <Typography variant="h5" gutterBottom color="primary">
+        {activity ? "Edit Activity" : "Create Activity"}
+      </Typography>
       <Box component="form" onSubmit={handleSubmit} display="flex" flexDirection="column" gap={3}>
         <TextField name="title" label="Title" defaultValue={activity?.title} />
         <TextField name="description" label="Description" multiline rows={3} defaultValue={activity?.description} />
@@ -43,7 +49,7 @@ export default function ActivityForm({ activity, closeForm }: Readonly<Props>) {
         <TextField name="city" label="City" defaultValue={activity?.city} />
         <TextField name="venue" label="Venue" defaultValue={activity?.venue} />
         <Box display="flex" justifyContent="end" gap={3}>
-          <Button color="inherit" onClick={closeForm}>Cancel</Button>
+          <Button color="inherit" onClick={() => { }}>Cancel</Button>
           <Button
             type="submit"
             color="success"
