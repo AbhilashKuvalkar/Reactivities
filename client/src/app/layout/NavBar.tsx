@@ -23,20 +23,17 @@ export default function NavBar() {
                             </MenuItem>
                         </Box>
                         <Box sx={{ display: "flex" }}>
-                            <MenuItemLink
-                                to="/activities"
-                            >
+                            <MenuItemLink to="/activities">
                                 Activities
                             </MenuItemLink>
-                            <MenuItemLink
-                                to="/createActivity"
-                            >
+                            <MenuItemLink to="/createActivity">
                                 Create Activity
                             </MenuItemLink>
-                            <MenuItemLink
-                                to="/counter"
-                            >
+                            <MenuItemLink to="/counter">
                                 Counter
+                            </MenuItemLink>
+                            <MenuItemLink to="/errors">
+                                Errors
                             </MenuItemLink>
                         </Box>
                         <MenuItem>

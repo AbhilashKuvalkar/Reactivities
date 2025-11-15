@@ -1,54 +1,68 @@
+using API.Middleware;
 using Application.Activities.Queries;
+using Application.Activities.Validators;
 using Application.Core;
+using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using Persistence;
 
-internal class Program
+namespace API
 {
-    private static async Task Main(string[] args)
+    internal class Program
     {
-        var builder = WebApplication.CreateBuilder(args);
-
-        // Add services to the container.
-        builder.Services.AddDbContext<AppDbContext>(opt => opt.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
-        builder.Services.AddCors();
-        builder.Services.AddControllers();
-
-        builder.Services.AddAutoMapper(_ => { }, typeof(MappingProfiles).Assembly);
-
-        builder.Services.AddMediatR(x => 
-            x.RegisterServicesFromAssemblyContaining<GetActivityList.Handler>());
-
-        var app = builder.Build();
-
-        // Configure the HTTP request pipeline.
-        app.UseHttpsRedirection();
-        app.UseRouting();
-        app.UseCors(policy =>
+        private static async Task Main(string[] args)
         {
-            policy
-                .AllowAnyHeader()
-                .AllowAnyMethod()
-                .WithOrigins(["http://localhost:3000", "https://localhost:3000"]);
-        });
-        app.UseAuthorization();
+            var builder = WebApplication.CreateBuilder(args);
 
-        app.MapControllers();
+            // Add services to the container.
+            builder.Services.AddDbContext<AppDbContext>(opt => opt.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
+            builder.Services.AddCors();
+            builder.Services.AddControllers();
 
-        using var scope = app.Services.CreateScope();
-        var services = scope.ServiceProvider;
-        try
-        {
-            var context = services.GetRequiredService<AppDbContext>();
-            await context.Database.MigrateAsync();
-            await DbInitializer.SeedDataAsync(context);
+            builder.Services.AddAutoMapper(_ => { }, typeof(MappingProfiles).Assembly);
+
+            builder.Services.AddValidatorsFromAssemblyContaining<CreateActivityValidator>();
+
+            builder.Services.AddMediatR(x =>
+            {
+                x.RegisterServicesFromAssemblyContaining<GetActivityList.Handler>();
+                x.AddOpenBehavior(typeof(ValidationBehavior<,>));
+            });
+
+            builder.Services.AddTransient<ExceptionMiddleware>();
+
+            var app = builder.Build();
+
+            // Configure the HTTP request pipeline.
+            app.UseHttpsRedirection();
+            app.UseMiddleware<ExceptionMiddleware>();
+            app.UseRouting();
+            app.UseCors(policy =>
+            {
+                policy
+                    .AllowAnyHeader()
+                    .AllowAnyMethod()
+                    .WithOrigins("http://localhost:3000", "https://localhost:3000");
+            });
+            app.UseAuthorization();
+
+            app.MapControllers();
+
+            using var scope = app.Services.CreateScope();
+            var services = scope.ServiceProvider;
+            try
+            {
+                var context = services.GetRequiredService<AppDbContext>();
+                await context.Database.MigrateAsync();
+                await DbInitializer.SeedDataAsync(context);
+            }
+            catch (Exception exception)
+            {
+                var logger = services.GetRequiredService<ILogger<Program>>();
+                logger.LogError(exception, "An error occurred during migration");
+            }
+
+            await app.RunAsync();
         }
-        catch (Exception exception)
-        {
-            var logger = services.GetRequiredService<ILogger<Program>>();
-            logger.LogError(exception, "An error occurred during migration");
-        }
-
-        await app.RunAsync();
     }
 }
