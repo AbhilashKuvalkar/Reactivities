@@ -64,7 +64,7 @@ export default function ActivityDetailsHeader({ activity }: Readonly<Props>) {
                                 variant="contained"
                                 color="primary"
                                 component={Link}
-                                to={`/manage/activityId`}
+                                to={`/manage/${activity.id}`}
                                 disabled={isCancelled}
                             >
                                 Manage Event
