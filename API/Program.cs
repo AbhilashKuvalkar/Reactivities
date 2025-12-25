@@ -2,9 +2,10 @@ using API.Middleware;
 using Application.Activities.Queries;
 using Application.Activities.Validators;
 using Application.Core;
+using Application.Interfaces;
 using Domain;
 using FluentValidation;
-using Microsoft.AspNetCore.Authentication.Cookies;
+using Infrastructure.Security;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Authorization;
@@ -46,15 +47,24 @@ namespace API
                 .AddEntityFrameworkStores<AppDbContext>()
                 ;
 
+            builder.Services.AddScoped<IUserAccessor, UserAccessor>();
+
+            builder.Services.AddAuthorization(options =>
+            {
+                options.AddPolicy("IsActivityHost", policy =>
+                {
+                    policy.Requirements.Add(new IsHostRequirement());
+                });
+            });
+            builder.Services.AddTransient<IAuthorizationHandler, IsHostRequirementHandler>();
+
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
-            app.UseAuthentication();
-            app.UseAuthorization();
-
-            app.UseHttpsRedirection();
             app.UseMiddleware<ExceptionMiddleware>();
+            app.UseHttpsRedirection();
             app.UseRouting();
+
             app.UseCors(policy =>
             {
                 policy
@@ -62,7 +72,10 @@ namespace API
                     .AllowAnyMethod()
                     .AllowCredentials()
                     .WithOrigins("http://localhost:3000", "https://localhost:3000");
-            });           
+            });
+
+            app.UseAuthentication();
+            app.UseAuthorization();
 
             app.MapControllers();
             app.MapGroup("api").MapIdentityApi<User>();
