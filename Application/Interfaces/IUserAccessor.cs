@@ -7,4 +7,8 @@ public interface IUserAccessor
     string GetUserId();
 
     Task<User> GetUserAsync();
+
+    Task<User> GetUserWithPhotosAsync();
+
+    bool IsCurrentUser(string userId);
 }

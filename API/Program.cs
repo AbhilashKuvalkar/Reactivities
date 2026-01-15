@@ -5,6 +5,7 @@ using Application.Core;
 using Application.Interfaces;
 using Domain;
 using FluentValidation;
+using Infrastructure.Photos;
 using Infrastructure.Security;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -48,6 +49,7 @@ namespace API
                 ;
 
             builder.Services.AddScoped<IUserAccessor, UserAccessor>();
+            builder.Services.AddScoped<IPhotoService, PhotoService>();
 
             builder.Services.AddAuthorization(options =>
             {
@@ -57,6 +59,8 @@ namespace API
                 });
             });
             builder.Services.AddTransient<IAuthorizationHandler, IsHostRequirementHandler>();
+
+            builder.Services.Configure<CloudinarySettings>(builder.Configuration.GetSection(nameof(CloudinarySettings)));
 
             var app = builder.Build();
 

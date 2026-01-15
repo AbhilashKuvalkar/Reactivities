@@ -8,6 +8,7 @@ public class AppDbContext : IdentityDbContext<User>
 {
     public required DbSet<Activity> Activities { get; set; }
     public required DbSet<ActivityAttendee> ActivityAttendees { get; set; }
+    public required DbSet<Photo> Photos { get; set; }
 
     public AppDbContext(DbContextOptions options) : base(options) { }
 
