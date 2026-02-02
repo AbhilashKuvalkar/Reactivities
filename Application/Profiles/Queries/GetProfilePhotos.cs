@@ -21,17 +21,12 @@ public class GetProfilePhotos
         {
             var currentUser = userAccessor.GetUserId();
 
-            if (userAccessor.IsCurrentUser(request.UserId))
-            {
-                var photos = await appDbContext.Users
-                    .Where(x => x.Id.Equals(request.UserId))
-                    .SelectMany(x => x.Photos)
-                    .ToListAsync(cancellationToken);
+            var photos = await appDbContext.Users
+                .Where(x => x.Id.Equals(request.UserId))
+                .SelectMany(x => x.Photos)
+                .ToListAsync(cancellationToken);
 
-                return Result<List<Photo>>.Success(photos);
-            }
-
-            return Result<List<Photo>>.Failure("Unauthorized access to photos.", 401);
+            return Result<List<Photo>>.Success(photos);
         }
     }
 }

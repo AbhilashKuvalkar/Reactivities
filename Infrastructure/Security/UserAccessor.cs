@@ -26,8 +26,8 @@ public class UserAccessor : IUserAccessor
 
     public string GetUserId()
     {
-        return _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value ??
-            throw new InvalidOperationException("User is not authenticated.");
+        return _httpContextAccessor.HttpContext?.User?.FindFirstValue(ClaimTypes.NameIdentifier) ??
+            throw new Exception("No user found");
     }
 
     public async Task<User> GetUserWithPhotosAsync()
@@ -36,12 +36,12 @@ public class UserAccessor : IUserAccessor
         return await _appDbContext.Users
             .Include(u => u.Photos)
             .FirstOrDefaultAsync(x => x.Id.Equals(userId))
-                ?? throw new InvalidOperationException("User not found in the database.");
+                ?? throw new UnauthorizedAccessException("Cannot find user in the DB");
     }
 
     public bool IsCurrentUser(string userId)
     {
         var currentUserId = GetUserId();
-        return currentUserId.Equals(userId, StringComparison.OrdinalIgnoreCase);
+        return string.Equals(currentUserId, userId, StringComparison.OrdinalIgnoreCase);
     }
 }
