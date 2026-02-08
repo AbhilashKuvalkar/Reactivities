@@ -9,10 +9,12 @@ public class MappingProfiles : Profile
 {
     public MappingProfiles()
     {
-        CreateMap<CreateActivityDto, Domain.Activity>();
-        
-        CreateMap<EditActivityDto, Domain.Activity>();
-        
+        string? currentUserId = null;
+
+        CreateMap<CreateActivityDto, Activity>();
+
+        CreateMap<EditActivityDto, Activity>();
+
         CreateMap<Activity, ActivityDto>()
             .ForMember(d => d.HostDisplayName, o => o.MapFrom(s => s.Attendees.FirstOrDefault(a => a.IsHost)!.User.DisplayName))
             .ForMember(d => d.HostId, o => o.MapFrom(s => s.Attendees.FirstOrDefault(a => a.IsHost)!.User.Id))
@@ -23,10 +25,25 @@ public class MappingProfiles : Profile
             .ForMember(d => d.DisplayName, o => o.MapFrom(s => s.User.DisplayName))
             .ForMember(d => d.Bio, o => o.MapFrom(s => s.User.Bio))
             .ForMember(d => d.ImageUrl, o => o.MapFrom(s => s.User.ImageUrl))
+            .ForMember(d => d.FollowersCount, o => o.MapFrom(s => s.User.Followers.Count))
+            .ForMember(d => d.FollowingCount, o => o.MapFrom(s => s.User.Followings.Count))
+            .ForMember(
+                d => d.Following,
+                o => o.MapFrom(
+                    s => s.User.Followers.Any(
+                        x => string.Equals(x.Observer.Id, currentUserId))))
             ;
 
-        CreateMap<User, UserProfile>();
-        
+        CreateMap<User, UserProfile>()
+            .ForMember(d => d.FollowersCount, o => o.MapFrom(s => s.Followers.Count))
+            .ForMember(d => d.FollowingCount, o => o.MapFrom(s => s.Followings.Count))
+            .ForMember(
+                d => d.Following,
+                o => o.MapFrom(
+                    s => s.Followers.Any(
+                        x => string.Equals(x.Observer.Id, currentUserId))))
+            ;
+
         CreateMap<Comment, CommentDto>()
             .ForMember(d => d.UserId, o => o.MapFrom(s => s.User.Id))
             .ForMember(d => d.DisplayName, o => o.MapFrom(s => s.User.DisplayName))

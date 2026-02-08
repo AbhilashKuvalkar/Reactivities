@@ -1,4 +1,3 @@
-using System;
 using Domain;
 using Microsoft.AspNetCore.Identity;
 
@@ -10,9 +9,9 @@ public class DbInitializer
     {
         var users = new List<User>
         {
-            new() { DisplayName = "Bob", UserName = "bob@test.com", Email = "bob@test.com" },
-            new() { DisplayName = "Tom", UserName = "tom@test.com", Email = "tom@test.com" },
-            new() { DisplayName = "Alice", UserName = "alice@test.com", Email = "alice@test.com" },
+            new() { Id = "bob-id", DisplayName = "Bob", UserName = "bob@test.com", Email = "bob@test.com" },
+            new() { Id = "tom-id", DisplayName = "Tom", UserName = "tom@test.com", Email = "tom@test.com" },
+            new() { Id = "alice-id", DisplayName = "Alice", UserName = "alice@test.com", Email = "alice@test.com" },
         };
 
         if (!userManager.Users.Any())

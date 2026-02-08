@@ -1,11 +1,11 @@
-import { Avatar } from '@mui/material';
-import Popover from '@mui/material/Popover';
-import { useState } from 'react';
-import { Link } from 'react-router';
-import ProfileCard from '../../../features/profiles/ProfileCard';
+import { Avatar } from "@mui/material";
+import Popover from "@mui/material/Popover";
+import { useState } from "react";
+import { Link } from "react-router";
+import ProfileCard from "../../../features/profiles/ProfileCard";
 
 type Props = {
-    profile: Profile
+    profile: Profile;
 };
 
 export default function AvatarPopover({ profile }: Props) {
@@ -27,22 +27,26 @@ export default function AvatarPopover({ profile }: Props) {
                 alt={profile.displayName + " image"}
                 src={profile.imageUrl}
                 component={Link}
-                to={`/profiles/${profile.id}`} 
-                onMouseEnter={handlePopoverOpen} 
+                to={`/profiles/${profile.id}`}
+                onMouseEnter={handlePopoverOpen}
                 onMouseLeave={handlePopoverClose}
+                sx={{
+                    border: profile.following ? 3 : 0,
+                    borderColor: "secondary.main",
+                }}
             />
             <Popover
                 id="mouse-over-popover"
-                sx={{ pointerEvents: 'none' }}
+                sx={{ pointerEvents: "none" }}
                 open={open}
                 anchorEl={anchorEl}
                 anchorOrigin={{
-                    vertical: 'bottom',
-                    horizontal: 'left',
+                    vertical: "bottom",
+                    horizontal: "left",
                 }}
                 transformOrigin={{
-                    vertical: 'top',
-                    horizontal: 'left',
+                    vertical: "top",
+                    horizontal: "left",
                 }}
                 onClose={handlePopoverClose}
                 disableRestoreFocus
