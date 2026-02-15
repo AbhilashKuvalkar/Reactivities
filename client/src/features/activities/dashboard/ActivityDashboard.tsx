@@ -1,6 +1,6 @@
-import { Grid } from '@mui/material';
-import ActivityList from './ActivityList';
-import ActivityFilter from './ActivityFilter';
+import { Grid } from "@mui/material";
+import ActivityList from "./ActivityList";
+import ActivityFilter from "./ActivityFilter";
 
 export default function ActivityDashboard() {
     return (
@@ -8,9 +8,12 @@ export default function ActivityDashboard() {
             <Grid size={8}>
                 <ActivityList />
             </Grid>
-            <Grid size={4}>
+            <Grid
+                size={4}
+                sx={{ position: "sticky", top: 70, alignSelf: "flex-start" }}
+            >
                 <ActivityFilter />
             </Grid>
-        </Grid >
-    )
+        </Grid>
+    );
 }

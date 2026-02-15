@@ -1,25 +1,60 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+    keepPreviousData,
+    useInfiniteQuery,
+    useMutation,
+    useQuery,
+    useQueryClient,
+} from "@tanstack/react-query";
 import agent from "../api/agent";
 import { useLocation } from "react-router";
 import { useAccount } from "./useAccount";
+import { useStore } from "./useStore";
 
 export const useActivities = (id?: string) => {
+    const {
+        activityStore: { filter, startDate },
+    } = useStore();
     const queryClient = useQueryClient();
     const location = useLocation();
     const { currentUser } = useAccount();
     const activitiesKey = "activities";
     const activitiesQueryKey = [activitiesKey];
 
-    const { data: activities, isLoading } = useQuery({
-        queryKey: activitiesQueryKey,
-        queryFn: async () => {
-            const response = await agent.get<Activity[]>(`/${activitiesKey}`);
+    const {
+        data: activitiesGroup,
+        isLoading,
+        isFetchingNextPage,
+        fetchNextPage,
+        hasNextPage,
+    } = useInfiniteQuery<PagedList<Activity, string>>({
+        queryKey: [activitiesKey, filter, startDate],
+        queryFn: async ({ pageParam = null }) => {
+            const response = await agent.get<PagedList<Activity, string>>(
+                `/${activitiesKey}`,
+                {
+                    params: {
+                        cursor: pageParam,
+                        pageSize: 3,
+                        filter,
+                        startDate,
+                    },
+                },
+            );
             return response.data;
         },
-        // staleTime: 1000 * 60 * 5 //5 Minutes
+        staleTime: 1000 * 60 * 5, //5 Minutes
+        placeholderData: keepPreviousData,
+        initialPageParam: null,
+        getNextPageParam: (lastPage) => lastPage.nextCursor,
         enabled:
             !id && location.pathname === `/${activitiesKey}` && !!currentUser,
-        select: (data) => data.map((activity) => getActivity(activity)),
+        select: (data) => ({
+            ...data,
+            pages: data.pages.map((page) => ({
+                ...page,
+                items: page.items.map((activity) => getActivity(activity)),
+            })),
+        }),
     });
 
     const getActivity = (data: Activity): Activity => {
@@ -143,7 +178,10 @@ export const useActivities = (id?: string) => {
 
     return {
         activitiesKey,
-        activities,
+        activitiesGroup,
+        isFetchingNextPage,
+        fetchNextPage,
+        hasNextPage,
         isLoading,
         updateActivity,
         createActivity,
