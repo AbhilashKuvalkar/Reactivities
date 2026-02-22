@@ -1,3 +1,4 @@
+using API.Controllers;
 using API.Middleware;
 using API.SignalR;
 using Application.Activities.Queries;
@@ -24,7 +25,7 @@ namespace API
 
             // Add services to the container.
             builder.Services.AddAuthorization();
-            builder.Services.AddDbContext<AppDbContext>(opt => opt.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
+            builder.Services.AddDbContext<AppDbContext>(opt => opt.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
             builder.Services.AddCors();
             builder.Services.AddSignalR();
             builder.Services.AddControllers(options =>
@@ -83,9 +84,16 @@ namespace API
             app.UseAuthentication();
             app.UseAuthorization();
 
+            app.UseDefaultFiles();
+            app.UseStaticFiles();
+
             app.MapControllers();
             app.MapGroup("api").MapIdentityApi<User>();
             app.MapHub<CommentHub>("/comments");
+            app.MapFallbackToController(
+                nameof(FallbackController.Index),
+                nameof(FallbackController).Replace("Controller", "", StringComparison.OrdinalIgnoreCase)
+            );
 
             using var scope = app.Services.CreateScope();
             var services = scope.ServiceProvider;

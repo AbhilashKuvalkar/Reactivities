@@ -45,7 +45,7 @@ public class AppDbContext : IdentityDbContext<User>
             .HasOne(o => o.Target)
             .WithMany(m => m.Followers)
             .HasForeignKey(k => k.TargetId)
-            .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.NoAction);
         });
 
         var dateTimeConverter = new ValueConverter<DateTime, DateTime>(
