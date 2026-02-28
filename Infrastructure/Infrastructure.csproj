@@ -16,6 +16,11 @@
 
   <ItemGroup>
     <PackageReference Include="CloudinaryDotNet" Version="1.27.*" />
+    <PackageReference Include="Resend" Version="0.2.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Email\" />
   </ItemGroup>
 
 </Project>
