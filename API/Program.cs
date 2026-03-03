@@ -7,6 +7,7 @@ using Application.Core;
 using Application.Interfaces;
 using Domain;
 using FluentValidation;
+using Infrastructure.Email;
 using Infrastructure.Photos;
 using Infrastructure.Security;
 using Microsoft.AspNetCore.Authorization;
@@ -14,6 +15,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Persistence;
+using Resend;
 
 namespace API
 {
@@ -44,9 +46,18 @@ namespace API
                 x.AddOpenBehavior(typeof(ValidationBehavior<,>));
             });
 
+            builder.Services.AddHttpClient<ResendClient>();
+            builder.Services.Configure<ResendClientOptions>(builder.Configuration.GetSection(nameof(ResendClientOptions)));
+            builder.Services.AddTransient<IResend, ResendClient>();
+            builder.Services.AddTransient<IEmailSender<User>, EmailSender>();
+
             builder.Services.AddTransient<ExceptionMiddleware>();
             builder.Services
-                .AddIdentityApiEndpoints<User>(opt => opt.User.RequireUniqueEmail = true)
+                .AddIdentityApiEndpoints<User>(opt =>
+                {
+                    opt.User.RequireUniqueEmail = true;
+                    opt.SignIn.RequireConfirmedEmail = true;
+                })
                 .AddRoles<IdentityRole>()
                 .AddEntityFrameworkStores<AppDbContext>()
                 ;
@@ -84,8 +95,8 @@ namespace API
             app.UseAuthentication();
             app.UseAuthorization();
 
-            app.UseDefaultFiles();
-            app.UseStaticFiles();
+            // app.UseDefaultFiles();
+            // app.UseStaticFiles();
 
             app.MapControllers();
             app.MapGroup("api").MapIdentityApi<User>();
@@ -101,7 +112,10 @@ namespace API
             {
                 var context = services.GetRequiredService<AppDbContext>();
                 var userManager = services.GetRequiredService<UserManager<User>>();
-                await context.Database.MigrateAsync();
+
+                if (!await context.Database.CanConnectAsync())
+                    await context.Database.MigrateAsync();
+
                 await DbInitializer.SeedDataAsync(context, userManager);
             }
             catch (Exception exception)
