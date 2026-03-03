@@ -43,7 +43,6 @@ export const useActivities = (id?: string) => {
             );
             return response.data;
         },
-        staleTime: 1000 * 60 * 5, //5 Minutes
         placeholderData: keepPreviousData,
         initialPageParam: null,
         getNextPageParam: (lastPage) => lastPage.nextCursor,
@@ -82,11 +81,11 @@ export const useActivities = (id?: string) => {
 
     const updateActivity = useMutation({
         mutationFn: async (activity: Activity) => {
-            await agent.put(`/${activitiesKey}`, activity);
+            await agent.put(`/${activitiesKey}/${activity.id}`, activity);
         },
         onSuccess: async () => {
             await queryClient.invalidateQueries({
-                queryKey: activitiesQueryKey,
+                queryKey: [activitiesKey, activity?.id],
             });
         },
     });
